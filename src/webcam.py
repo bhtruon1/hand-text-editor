@@ -19,9 +19,8 @@ def show_webcam(mirror=False):
         if mirror: 
             img = cv2.flip(img, 1)
         #print(np.array(rgb2gray(img)).shape)
-        #cv2.imshow('my webcam', rgb2gray(img))
-        print cv2.waitKey(1)
-        if cv2.waitKey(1) == 27: 
+        cv2.imshow('my webcam', img)
+        if cv2.waitKey(1) != -1: 
             break  # esc to quit
     cv2.destroyAllWindows()
 
@@ -30,5 +29,4 @@ def main():
     show_webcam(mirror=True)
 
 
-if __name__ == '__main__':
-    main()
+main()
