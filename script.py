@@ -48,13 +48,12 @@ n_test_samples = 500
 test_sampler = SubsetRandomSampler(np.arange(n_test_samples, dtype=np.int64))
 
 
-def get_train_loader(batch_size):
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                           sampler=train_sampler, num_workers=2)
-    return train_loader
 
-test_loader = torch.utils.data.DataLoader(testset, batch_size=4, sampler=test_sampler, num_workers=2)
-val_loader = torch.utils.data.DataLoader(trainset, batch_size=128, sampler=val_sampler, num_workers=2)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                          shuffle=True, num_workers=2)
+
+test_loader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                          shuffle=False, num_workers=2)
 
 
 def createLossAndOptimizer(net, learning_rate=0.001):
@@ -75,7 +74,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 for epoch in range(5):  # loop over the dataset multiple times
 
     running_loss = 0.0
-    for i, data in enumerate(get_train_loader(4), 0):
+    for i, data in enumerate(train_loader, 0):
         # get the inputs
         inputs, labels = data
 
@@ -102,7 +101,35 @@ print('Finished Training')
 dataiter = iter(test_loader)
 images, labels = dataiter.next()
 
-# print images
-#plt.imshow(torchvision.utils.make_grid(images))
-print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
-#plt.show()
+
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in test_loader:
+        images, labels = data
+        outputs = net(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 2062 test images: %d %%' % (
+    100 * correct / total))
+
+class_correct = list(0. for i in range(10))
+class_total = list(0. for i in range(10))
+with torch.no_grad():
+    for data in test_loader:
+        images, labels = data
+        outputs = net(images)
+        _, predicted = torch.max(outputs, 1)
+        c = (predicted == labels).squeeze()
+        for i in range(4):
+            label = labels[i]
+            class_correct[label] += c[i].item()
+            class_total[label] += 1
+
+print(class_total)
+
+for i in range(10):
+    print('Accuracy of %5s : %2d %%' % (
+        classes[i], 100 * class_correct[i] / class_total[i]))
