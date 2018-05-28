@@ -11,4 +11,4 @@ A subdirectory that contains all the source file
 
 ## webcam.py
 Contains functions that use webcam information in order to retrieve photo. Photos are grayscaled and converted to 32x32. Call main() in order to begin webcam photo capture. 
-
+Checks for an output from the neural network before inputting new images to the neural net.
