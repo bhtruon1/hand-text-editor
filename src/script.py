@@ -18,7 +18,7 @@ transform = transforms.Compose(
     [transforms.ToTensor()
         , transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainset = dset.ImageFolder(root='./dataset/SL/Dataset', transform=transform)
+trainset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/dataset/SL/Dataset', transform=transform)
 
 
 # trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
@@ -27,7 +27,7 @@ trainset = dset.ImageFolder(root='./dataset/SL/Dataset', transform=transform)
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
 #                                           shuffle=True, num_workers=2)
 #
-testset = dset.ImageFolder(root='./dataset/SL/Dataset', transform=transform)
+testset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/dataset/SL/Dataset', transform=transform)
 #
 # testloader = torch.utils.data.DataLoader(testset, batch_size=4,
 #                                          shuffle=False, num_workers=2)
