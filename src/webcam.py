@@ -8,6 +8,8 @@ import numpy as np
 from PIL import Image
 import threading
 
+allimages = True
+counter = True
 images = []
 
 def rgb2gray(rgb):
@@ -29,7 +31,10 @@ def formatImage(img, width, maxwidth, count):
     crop = img[0:width, cropwidth:maxwidth]
     if checkContours(crop):
         crop = cv2.resize(crop, (32, 32))
-        cv2.imwrite("images/image{}.jpeg".format(count), crop)
+        if counter:
+            cv2.imwrite("images/image{}.jpeg".format(count), crop)
+        else:
+            cv2.imwrite("images/image.jpeg".format(count), crop)
         images.append(img)
     return img     
 
@@ -53,7 +58,7 @@ def show_webcam(mirror=False):
         cv2.imshow('my webcam', img)
 
         #captures image every 3 seconds
-        if (time.time() - start) % 60 >= 5:
+        if (time.time() - start) % 60 >= 5 or allimages:
             formatImage(img, width, maxwidth, count)  
             count += 1
             start = time.time()
