@@ -7,6 +7,6 @@ S - Thumbs up
 T - Gun
 V - Gun with 2 fingers
 W - Gun with 3 fingers 
-Z - Sideways A 
+Z - Zot Sideways
 
 

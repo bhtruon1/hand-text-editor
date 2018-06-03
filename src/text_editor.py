@@ -1,4 +1,4 @@
-from tkinter import *
+from Tkinter import *
 
 class TextEditor:
     def __init__(self):
@@ -16,3 +16,5 @@ class TextEditor:
     def delete(self):
         self.CONTAINER.delete("end-2c")
         self.ROOT.update()
+
+
