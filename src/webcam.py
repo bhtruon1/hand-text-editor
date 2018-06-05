@@ -4,6 +4,7 @@ via the new Pythonic cv2 interface.  Press any key to quit.
 """
 import time
 import cv2
+import os
 import numpy as np
 from PIL import Image
 import threading
@@ -15,15 +16,19 @@ images = []
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
 
+def checkImgDir():
+    if not os.path.exists("images"):
+        os.makedirs("images") 
+
 def checkContours(crop):
-   # grey = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-   # blurred = cv2.GaussianBlur(grey, (35, 35), 0)
-   # _, thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-   # contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-   # cmax = max(contours, key=lambda x: cv2.contourArea(x))
-   # x, y, w, h = cv2.boundingRect(cmax)
-   # if x == 0 and y == 0:
-   #     return False
+    #grey = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+    #blurred = cv2.GaussianBlur(grey, (35, 35), 0)
+    #_, thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    #contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    #cmax = max(contours, key=lambda x: cv2.contourArea(x))
+    #x, y, w, h = cv2.boundingRect(cmax)
+    #if x == 0 and y == 0:
+    #    return False
     return True
 
 def formatImage(img, width, maxwidth, count):
@@ -69,6 +74,7 @@ def show_webcam(mirror=False):
     #print(images)
 
 def main():
+    checkImgDir()
     show_webcam(mirror=True)
 
 
