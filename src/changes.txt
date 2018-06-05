@@ -1,3 +1,6 @@
+The purpose of changing the letter was to make it easier for the neural network to distinguish between the same or extremely similar hand poses. 
+The data can be recreated using webcam.py and changing some parameters if one chooses to do so  
+
 D - too similar to 6, changed to sideways "f", similar shape to character "d"
 E - too similar to A, changed to similar shape as character "e"
 J - requires to movement, change to L with two fingers and curved thumb
