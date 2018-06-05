@@ -3,7 +3,7 @@ from PIL import Image
 import sys
 
 size = 32, 32
-mainDir = "Sign-Language-Digits-Dataset"
+mainDir = "images"
 
 for subdir, dirs, files in os.walk(mainDir):
     for f in files:
