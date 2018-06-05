@@ -1,6 +1,6 @@
 *.swp
-*.zip
 *.pyc
+*.jpeg
 .DS_Store
 .vscode/
 images/
