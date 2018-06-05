@@ -1,10 +1,7 @@
 *.swp
 *.zip
 *.pyc
-Sign-language-digits-dataset/
-Sign-Language-Digits-Dataset/
 .DS_Store
 .vscode/
 images/
-training/
 __pycache__/
