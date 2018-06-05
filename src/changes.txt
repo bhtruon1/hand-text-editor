@@ -6,6 +6,7 @@ E - too similar to A, changed to similar shape as character "e"
 J - requires to movement, change to L with two fingers and curved thumb
 M - too similar to A, changed to sideways 6
 N - too similar to A, changed to sideways 2
+O - too similar to 0, changed to a ok sign with two fingers on thumb 
 S - Thumbs up
 T - Gun
 V - Gun with 2 fingers
