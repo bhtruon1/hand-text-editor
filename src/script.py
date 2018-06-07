@@ -13,12 +13,16 @@ from torch.autograd import Variable
 import time
 import matplotlib.pyplot as plt
 
+class Flatten(nn.Module):
+    def forward(self, x):
+        N, C, H, W = x.size() # read in N, C, H, W
+        return x.view(N, -1)  # "flatten" the C * H * W values into a single vector per image
 
 transform = transforms.Compose(
     [transforms.ToTensor()
         , transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/dataset/SL/Dataset', transform=transform)
+trainset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/training', transform=transform)
 
 
 # trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
@@ -27,25 +31,18 @@ trainset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_proje
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
 #                                           shuffle=True, num_workers=2)
 #
-testset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/dataset/SL/Dataset', transform=transform)
+testset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/testing', transform=transform)
 #
 # testloader = torch.utils.data.DataLoader(testset, batch_size=4,
 #                                          shuffle=False, num_workers=2)
 
+# classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+#            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+#            'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+#            'U', 'V', 'W', 'X', 'Y', 'Z')
+
 classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-
-#Training
-n_training_samples = 1400
-train_sampler = SubsetRandomSampler(np.arange(n_training_samples, dtype=np.int64))
-
-#Validation
-n_val_samples = 500
-val_sampler = SubsetRandomSampler(np.arange(n_training_samples, n_training_samples + n_val_samples, dtype=np.int64))
-
-#Test
-n_test_samples = 500
-test_sampler = SubsetRandomSampler(np.arange(n_test_samples, dtype=np.int64))
 
 
 
@@ -71,7 +68,7 @@ net = Network.Net()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-for epoch in range(5):  # loop over the dataset multiple times
+for epoch in range(1):  # loop over the dataset multiple times
 
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
@@ -96,6 +93,7 @@ for epoch in range(5):  # loop over the dataset multiple times
 
 print('Finished Training')
 
+
 # trainNet(net, batch_size=32, n_epochs=10, learning_rate=0.001)
 
 dataiter = iter(test_loader)
@@ -112,7 +110,7 @@ with torch.no_grad():
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-print('Accuracy of the network on the 2062 test images: %d %%' % (
+print('Accuracy of the network on the bluh test images: %d %%' % (
     100 * correct / total))
 
 class_correct = list(0. for i in range(10))
