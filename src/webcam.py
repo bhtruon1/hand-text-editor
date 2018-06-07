@@ -11,6 +11,7 @@ import threading
 
 allimages = True
 grey =  False
+edge = False
 counter = True
 images = []
 
@@ -35,6 +36,8 @@ def formatImage(img, width, maxwidth, count):
     crop = cv2.resize(crop, (32, 32))
     if grey:
         crop = cv2.cvtColor( img, cv2.COLOR_RGB2GRAY )
+    if edge: 
+        crop = cv2.Canny(crop, 100, 200)
     if counter:
         cv2.imwrite("images/image{}.jpeg".format(count), crop)
     if not counter:
