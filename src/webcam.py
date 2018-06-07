@@ -10,11 +10,9 @@ from PIL import Image
 import threading
 
 allimages = True
+grey =  False
 counter = True
 images = []
-
-def rgb2gray(rgb):
-    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
 
 def checkImgDir():
     if not os.path.exists("images"):
@@ -34,13 +32,14 @@ def checkContours(crop):
 def formatImage(img, width, maxwidth, count):
     cropwidth = int(width * 2)
     crop = img[0:width, cropwidth:maxwidth]
-    if checkContours(crop):
-        crop = cv2.resize(crop, (32, 32))
-        if counter:
-            cv2.imwrite("images/image{}.jpeg".format(count), crop)
-        else:
-            cv2.imwrite("images/image.jpeg".format(count), crop)
-        images.append(img)
+    crop = cv2.resize(crop, (32, 32))
+    if grey:
+        crop = cv2.cvtColor( img, cv2.COLOR_RGB2GRAY )
+    if counter:
+        cv2.imwrite("images/image{}.jpeg".format(count), crop)
+    if not counter:
+        cv2.imwrite("images/image.jpeg".format(count), crop)
+    images.append(img)
     return img     
 
 def show_webcam(mirror=False):
