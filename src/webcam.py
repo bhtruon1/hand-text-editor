@@ -11,7 +11,7 @@ import threading
 
 allimages = True
 grey =  False
-edge = False
+edge = True
 counter = True
 images = []
 
