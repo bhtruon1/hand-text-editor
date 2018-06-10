@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
 
-#
+
 # class Net(torch.nn.Module):
 #     # Our batch shape for input x is (3, 32, 32)
 #
@@ -34,8 +34,8 @@ class Net(torch.nn.Module):
         self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
         self.conv1_2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
 
-        # self.conv2_1 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        # self.conv2_2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+        self.conv2_1 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.conv2_2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
 
         # self.conv3_1 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         # self.conv3_2 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
@@ -53,7 +53,7 @@ class Net(torch.nn.Module):
         self.pool = nn.MaxPool2d(2, 2)
 
         # fully conected layers:
-        self.fc6 = nn.Linear(16 * 16 * 64, 1024)
+        self.fc6 = nn.Linear(8 * 8 * 128, 1024)
         # self.fc7 = nn.Linear(4096, 256)
         self.fc8 = nn.Linear(1024, 38)
 
@@ -61,9 +61,9 @@ class Net(torch.nn.Module):
         x = F.relu(self.conv1_1(x))
         x = F.relu(self.conv1_2(x))
         x = self.pool(x)
-        # x = F.relu(self.conv2_1(x))
-        # x = F.relu(self.conv2_2(x))
-        # x = self.pool(x)
+        x = F.relu(self.conv2_1(x))
+        x = F.relu(self.conv2_2(x))
+        x = self.pool(x)
         # x = F.relu(self.conv3_1(x))
         # x = F.relu(self.conv3_2(x))
         # x = F.relu(self.conv3_3(x))
@@ -77,7 +77,7 @@ class Net(torch.nn.Module):
         # x = F.relu(self.conv5_2(x))
         # x = F.relu(self.conv5_3(x))
         # x = self.pool(x)
-        x = x.view(-1, 16 * 16 * 64)
+        x = x.view(-1, 8 * 8 * 128)
         x = F.relu(self.fc6(x))
         # x = F.relu(self.fc7(x))
         x = self.fc8(x)

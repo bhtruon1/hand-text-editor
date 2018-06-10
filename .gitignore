@@ -1,8 +1,9 @@
 *.swp
 *.pyc
-*.jpeg
 .DS_Store
+.idea.
 .vscode/
 __pycache__/
 __MACOSX/
-
+Train/
+Test/
