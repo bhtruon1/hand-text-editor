@@ -19,17 +19,6 @@ def checkImgDir():
     if not os.path.exists("images"):
         os.makedirs("images") 
 
-def checkContours(crop):
-    #grey = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-    #blurred = cv2.GaussianBlur(grey, (35, 35), 0)
-    #_, thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-    #contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    #cmax = max(contours, key=lambda x: cv2.contourArea(x))
-    #x, y, w, h = cv2.boundingRect(cmax)
-    #if x == 0 and y == 0:
-    #    return False
-    return True
-
 def formatImage(img, width, maxwidth, count):
     cropwidth = int(width * 2)
     crop = img[0:width, cropwidth:maxwidth]

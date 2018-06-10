@@ -2,7 +2,7 @@ from Tkinter import *
 
 class TextEditor:
     def __init__(self):
-        self.ROOT=Tk("Text Editor")
+        self.ROOT=Tk()
         self.ROOT.title("Hand Gesture Text Editor")
         self.CONTAINER=Text(self.ROOT)
         self.CONTAINER.insert(END, "")
@@ -16,5 +16,4 @@ class TextEditor:
     def delete(self):
         self.CONTAINER.delete("end-2c")
         self.ROOT.update()
-
 
