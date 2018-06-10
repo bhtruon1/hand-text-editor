@@ -18,7 +18,7 @@ import shutil
 #             shutil.move(i, move_to)
 #         except:
 #             pass
-dir = '/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/training/'
+dir = '/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/Train/'
 training_set = os.listdir(dir)
 
 print(training_set)
