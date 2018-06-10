@@ -14,7 +14,7 @@ import time
 import matplotlib.pyplot as plt
 from setGPU import *
 
-num_epochs = 1
+num_epochs = 10
 
 class Flatten(nn.Module):
     def forward(self, x):
@@ -87,8 +87,11 @@ def accuracy(net, test_loader):
     print(class_total)
 
     #for i in range(24):
-    #for i in range(38):
-        #print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
+    for i in range(38):
+        if class_total[i] == 0:
+            print('Accuracy of %5s : %2d %%' % (classes[i], 0))
+        else:
+            print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
 
