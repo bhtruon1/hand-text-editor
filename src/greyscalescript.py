@@ -4,7 +4,7 @@ import sys
 import cv2
 
 size = 32, 32
-mainDir = "data"
+mainDir = "edgedata"
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])

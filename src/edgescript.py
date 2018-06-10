@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 size = 32, 32
-mainDir = "data"
+mainDir = "data/training2"
 
 for subdir, dirs, files in os.walk(mainDir):
     for f in files:

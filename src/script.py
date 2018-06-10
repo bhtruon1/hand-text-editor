@@ -64,6 +64,8 @@ def accuracy(net, test_loader):
 
     correct = 0
     total = 0
+    #class_correct = list(0. for i in range(24))
+    #class_total = list(0. for i in range(24))
     class_correct = list(0. for i in range(38))
     class_total = list(0. for i in range(38))
     with torch.no_grad():
@@ -75,20 +77,20 @@ def accuracy(net, test_loader):
             _, predicted = torch.max(outputs, 1)
             total += labels_var.size(0)
             correct += (predicted == labels_var).sum().item()
-    #        c = (predicted == labels_var).squeeze()
-    #        for i in range(4):
-    #            label = labels_var[i]
-    #            class_correct[label] += c[i].item()
-    #            class_total[label] += 1
+            c = (predicted == labels_var).squeeze()
+            for i in range(4):
+                label = labels_var[i]
+                class_correct[label] += c[i].item()
+                class_total[label] += 1
 
-    #print('Accuracy of the network on test images: %d %%' % (100 * correct / total))
-    #print(class_total)
+    print('Accuracy of the network on test images: %d %%' % (100 * correct / total))
+    print(class_total)
 
+    #for i in range(24):
     #for i in range(38):
-    #    print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
+        #print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
 
-transform = transforms.Compose(
-    [transforms.ToTensor() , transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
 
 trainset = dset.ImageFolder(root='edgedata/training', transform=transform)
 
@@ -96,10 +98,8 @@ trainset = dset.ImageFolder(root='edgedata/training', transform=transform)
 testset = dset.ImageFolder(root='edgedata/testing', transform=transform)
 # testloader = torch.utils.data.DataLoader(testset, batch_size=4, shuffle=False, num_workers=2)
 
-classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-           'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-           'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-           'U', 'V', 'W', 'X', 'Y', 'Z', 'SP', 'BS')
+#classes = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y')
+classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y', 'Z', 'BS', 'SP')
 
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle=True, num_workers=2)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=4, shuffle=False, num_workers=2)
