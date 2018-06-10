@@ -1,314 +1,144 @@
-import argparse
-import os
-import shutil
-import time
-
+from __future__ import print_function
 import torch
+from torch.autograd import Variable
 import torch.nn as nn
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.optim
-import torch.utils.data
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
+import torch.nn.functional as F
+from matplotlib.pyplot import imread
+import numpy as np
 
-import wideresnet as dn
+import os
+import tarfile
+import urllib
 
-# used for logging to TensorBoard
-from tensorboard_logger import configure, log_value
-
-parser = argparse.ArgumentParser(description='PyTorch DenseNet Training')
-parser.add_argument('--epochs', default=300, type=int,
-                    help='number of total epochs to run')
-parser.add_argument('--start-epoch', default=0, type=int,
-                    help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=64, type=int,
-                    help='mini-batch size (default: 64)')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
-                    help='initial learning rate')
-parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
-                    help='weight decay (default: 1e-4)')
-parser.add_argument('--print-freq', '-p', default=10, type=int,
-                    help='print frequency (default: 10)')
-parser.add_argument('--layers', default=100, type=int,
-                    help='total number of layers (default: 100)')
-parser.add_argument('--growth', default=12, type=int,
-                    help='number of new channels per layer (default: 12)')
-parser.add_argument('--droprate', default=0, type=float,
-                    help='dropout probability (default: 0.0)')
-parser.add_argument('--no-augment', dest='augment', action='store_false',
-                    help='whether to use standard augmentation (default: True)')
-parser.add_argument('--reduce', default=0.5, type=float,
-                    help='compression rate in transition stage (default: 0.5)')
-parser.add_argument('--no-bottleneck', dest='bottleneck', action='store_false',
-                    help='To not use bottleneck block')
-parser.add_argument('--resume', default='', type=str,
-                    help='path to latest checkpoint (default: none)')
-parser.add_argument('--name', default='DenseNet_BC_100_12', type=str,
-                    help='name of experiment')
-parser.add_argument('--tensorboard',
-                    help='Log progress to TensorBoard', action='store_true')
-parser.set_defaults(bottleneck=True)
-parser.set_defaults(augment=True)
-
-best_prec1 = 0
+batch_size = 500   # Number of samples in each batch
+epoch_num = 4      # Number of epochs to train the network
+lr = 0.0005        # Learning rate
 
 
-def main():
-    global args, best_prec1
-    args = parser.parse_args()
-    if args.tensorboard: configure("runs/%s" % (args.name))
+class VGG16(nn.Module):
+    def __init__(self, n_classes):
+        super(VGG16, self).__init__()
+        # conv layers: (in_channel size, out_channels size, kernel_size, stride, padding)
+        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
+        self.conv1_2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
 
-    # Data loading code
-    normalize = transforms.Normalize(mean=[x / 255.0 for x in [125.3, 123.0, 113.9]],
-                                     std=[x / 255.0 for x in [63.0, 62.1, 66.7]])
+        self.conv2_1 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.conv2_2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
 
-    if args.augment:
-        transform_train = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ])
-    else:
-        transform_train = transforms.Compose([
-            transforms.ToTensor(),
-            normalize,
-        ])
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        normalize
-    ])
+        self.conv3_1 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        self.conv3_2 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
+        self.conv3_3 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
 
-    kwargs = {'num_workers': 1, 'pin_memory': True}
+        self.conv4_1 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
+        self.conv4_2 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
+        self.conv4_3 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
 
-    transform = transforms.Compose(
-        [transforms.ToTensor()
-            , transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    trainset = datasets.ImageFolder(
-        root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/training',
-        transform=transform)
-    testset = datasets.ImageFolder(
-        root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/testing',
-        transform=transform)
+        self.conv5_1 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
+        self.conv5_2 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
+        self.conv5_3 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
 
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=4,
-                                               shuffle=True, num_workers=2)
+        # max pooling (kernel_size, stride)
+        self.pool = nn.MaxPool2d(2, 2)
 
-    val_loader = torch.utils.data.DataLoader(testset, batch_size=4,
-                                              shuffle=False, num_workers=2)
+        # fully conected layers:
+        self.fc6 = nn.Linear(7*7*512, 4096)
+        self.fc7 = nn.Linear(4096, 4096)
+        self.fc8 = nn.Linear(4096, 1000)
 
-    # train_loader = torch.utils.data.DataLoader(
-    #     datasets.CIFAR10('../data', train=True, download=True,
-    #                      transform=transform_train),
-    #     batch_size=args.batch_size, shuffle=True, **kwargs)
-    # val_loader = torch.utils.data.DataLoader(
-    #     datasets.CIFAR10('../data', train=False, transform=transform_test),
-    #     batch_size=args.batch_size, shuffle=True, **kwargs)
+    def forward(self, x, training=True):
+        x = F.relu(self.conv1_1(x))
+        x = F.relu(self.conv1_2(x))
+        x = self.pool(x)
+        x = F.relu(self.conv2_1(x))
+        x = F.relu(self.conv2_2(x))
+        x = self.pool(x)
+        x = F.relu(self.conv3_1(x))
+        x = F.relu(self.conv3_2(x))
+        x = F.relu(self.conv3_3(x))
+        x = self.pool(x)
+        x = F.relu(self.conv4_1(x))
+        x = F.relu(self.conv4_2(x))
+        x = F.relu(self.conv4_3(x))
+        x = self.pool(x)
+        x = F.relu(self.conv5_1(x))
+        x = F.relu(self.conv5_2(x))
+        x = F.relu(self.conv5_3(x))
+        x = self.pool(x)
+        x = x.view(-1, 7 * 7 * 512)
+        x = F.relu(self.fc6(x))
+        x = F.dropout(x, 0.5, training=training)
+        x = F.relu(self.fc7(x))
+        x = F.dropout(x, 0.5, training=training)
+        x = self.fc8(x)
+        return x
 
-    # create model
-    model = dn.DenseNet3(args.layers, 10, args.growth, reduction=args.reduce,
-                         bottleneck=args.bottleneck, dropRate=args.droprate)
+    def predict(self, x):
+        # a function to predict the labels of a batch of inputs
+        x = F.softmax(self.forward(x, training=False))
+        return x
 
-    # get the number of model parameters
-    print('Number of model parameters: {}'.format(
-        sum([p.data.nelement() for p in model.parameters()])))
+    def accuracy(self, x, y):
+        # a function to calculate the accuracy of label prediction for a batch of inputs
+        #   x: a batch of inputs
+        #   y: the true labels associated with x
+        prediction = self.predict(x)
+        maxs, indices = torch.max(prediction, 1)
+        acc = 100 * torch.sum(torch.eq(indices.float(), y.float()).float())/y.size()[0]
+        return acc.cpu().data[0]
 
-    # for training on multiple GPUs.
-    # Use CUDA_VISIBLE_DEVICES=0,1 to specify which GPUs to use
-    # model = torch.nn.DataParallel(model).cuda()
-    model = model.cuda()
+# define the CNN and move the network into GPU
+vgg16 = VGG16(10)
+vgg16.cuda()
 
-    # optionally resume from a checkpoint
-    if args.resume:
-        if os.path.isfile(args.resume):
-            print("=> loading checkpoint '{}'".format(args.resume))
-            checkpoint = torch.load(args.resume)
-            args.start_epoch = checkpoint['epoch']
-            best_prec1 = checkpoint['best_prec1']
-            model.load_state_dict(checkpoint['state_dict'])
-            print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(args.resume, checkpoint['epoch']))
+# Download weights
+if not os.path.isdir('weights'):
+    os.makedirs('weights')
+if not os.path.isfile('weights/vgg_16.ckpt'):
+    print('Downloading the checkpoint ...')
+    urllib.urlretrieve("http://download.tensorflow.org/models/vgg_16_2016_08_28.tar.gz", "weights/vgg_16_2016_08_28.tar.gz")
+    with tarfile.open('weights/vgg_16_2016_08_28.tar.gz', "r:gz") as tar:
+        tar.extractall('weights/')
+    os.remove('weights/vgg_16_2016_08_28.tar.gz')
+    print('Download is complete !')
+
+reader = tf.train.NewCheckpointReader('weights/vgg_16.ckpt')
+debug_string = reader.debug_string()
+
+# load the weights from the ckpt file (TensorFlow format)
+load_dic = {}
+for l in list(vgg16.state_dict()):
+    if 'conv' in l:
+        tensor_to_load = 'vgg_16/conv{}/{}/{}{}'.format(l[4], l[:7], l[8:], 's' if 'weight' in l else 'es')
+        v_tensor = reader.get_tensor(tensor_to_load)
+        if 'weight' in l:
+            v_tensor = np.transpose(v_tensor, (3, 2, 1, 0))
         else:
-            print("=> no checkpoint found at '{}'".format(args.resume))
+            v_tensor = np.transpose(v_tensor)
+        load_dic[l] = torch.from_numpy(v_tensor).float()
+    if 'fc' in l:
+        tensor_to_load = 'vgg_16/fc{}/{}{}'.format(l[2], l[4:], 's' if 'weight' in l else 'es')
+        v_tensor = reader.get_tensor(tensor_to_load)
+        if 'weight' in l:
+            v_tensor = np.transpose(v_tensor, (3, 2, 1, 0))
+        else:
+            v_tensor = np.transpose(v_tensor)
+        load_dic[l] = torch.from_numpy(v_tensor).float()
 
-    cudnn.benchmark = True
+vgg16.load_state_dict(load_dic)
 
-    # define loss function (criterion) and pptimizer
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), args.lr,
-                                momentum=args.momentum,
-                                nesterov=True,
-                                weight_decay=args.weight_decay)
+image = imread('../images/apple.jpg')
+image = transform.resize(image, (224, 224, 3), preserve_range=True)
+_R_MEAN = 123.68
+_G_MEAN = 116.78
+_B_MEAN = 103.94
 
-    for epoch in range(args.start_epoch, args.epochs):
-        adjust_learning_rate(optimizer, epoch)
+image -= np.array([_R_MEAN, _G_MEAN, _B_MEAN])
+image = np.moveaxis(image, 2, 0)
+image = image[None]
 
-        # train for one epoch
-        train(train_loader, model, criterion, optimizer, epoch)
+image = torch.from_numpy(image).float()  # convert the numpy array into torch tensor
+image = Variable(image).cuda()           # create a torch variable and transfer it into GPU
 
-        # evaluate on validation set
-        prec1 = validate(val_loader, model, criterion, epoch)
-
-        # remember best prec@1 and save checkpoint
-        is_best = prec1 > best_prec1
-        best_prec1 = max(prec1, best_prec1)
-        save_checkpoint({
-            'epoch': epoch + 1,
-            'state_dict': model.state_dict(),
-            'best_prec1': best_prec1,
-        }, is_best)
-    print('Best accuracy: ', best_prec1)
-
-
-def train(train_loader, model, criterion, optimizer, epoch):
-    """Train for one epoch on the training set"""
-    batch_time = AverageMeter()
-    losses = AverageMeter()
-    top1 = AverageMeter()
-
-    # switch to train mode
-    model.train()
-
-    end = time.time()
-    for i, (input, target) in enumerate(train_loader):
-        target = target.cuda(async=True)
-        input = input.cuda()
-        input_var = torch.autograd.Variable(input)
-        target_var = torch.autograd.Variable(target)
-
-        # compute output
-        output = model(input_var)
-        loss = criterion(output, target_var)
-
-        # measure accuracy and record loss
-        prec1 = accuracy(output.data, target, topk=(1,))[0]
-        losses.update(loss.data[0], input.size(0))
-        top1.update(prec1[0], input.size(0))
-
-        # compute gradient and do SGD step
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        # measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
-
-        if i % args.print_freq == 0:
-            print('Epoch: [{0}][{1}/{2}]\t'
-                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                epoch, i, len(train_loader), batch_time=batch_time,
-                loss=losses, top1=top1))
-    # log to TensorBoard
-    if args.tensorboard:
-        log_value('train_loss', losses.avg, epoch)
-        log_value('train_acc', top1.avg, epoch)
-
-
-def validate(val_loader, model, criterion, epoch):
-    """Perform validation on the validation set"""
-    batch_time = AverageMeter()
-    losses = AverageMeter()
-    top1 = AverageMeter()
-
-    # switch to evaluate mode
-    model.eval()
-
-    end = time.time()
-    for i, (input, target) in enumerate(val_loader):
-        target = target.cuda(async=True)
-        input = input.cuda()
-        input_var = torch.autograd.Variable(input, volatile=True)
-        target_var = torch.autograd.Variable(target, volatile=True)
-
-        # compute output
-        output = model(input_var)
-        loss = criterion(output, target_var)
-
-        # measure accuracy and record loss
-        prec1 = accuracy(output.data, target, topk=(1,))[0]
-        losses.update(loss.data[0], input.size(0))
-        top1.update(prec1[0], input.size(0))
-
-        # measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
-
-        if i % args.print_freq == 0:
-            print('Test: [{0}/{1}]\t'
-                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                i, len(val_loader), batch_time=batch_time, loss=losses,
-                top1=top1))
-
-    print(' * Prec@1 {top1.avg:.3f}'.format(top1=top1))
-    # log to TensorBoard
-    if args.tensorboard:
-        log_value('val_loss', losses.avg, epoch)
-        log_value('val_acc', top1.avg, epoch)
-    return top1.avg
-
-
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    """Saves checkpoint to disk"""
-    directory = "runs/%s/" % (args.name)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    filename = directory + filename
-    torch.save(state, filename)
-    if is_best:
-        shutil.copyfile(filename, 'runs/%s/' % (args.name) + 'model_best.pth.tar')
-
-
-class AverageMeter(object):
-    """Computes and stores the average and current value"""
-
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
-
-
-def adjust_learning_rate(optimizer, epoch):
-    """Sets the learning rate to the initial LR decayed by 10 after 150 and 225 epochs"""
-    lr = args.lr * (0.1 ** (epoch // 150)) * (0.1 ** (epoch // 225))
-    # log to TensorBoard
-    if args.tensorboard:
-        log_value('learning_rate', lr, epoch)
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-
-
-def accuracy(output, target, topk=(1,)):
-    """Computes the precision@k for the specified values of k"""
-    maxk = max(topk)
-    batch_size = target.size(0)
-
-    _, pred = output.topk(maxk, 1, True, True)
-    pred = pred.t()
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-    res = []
-    for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0)
-        res.append(correct_k.mul_(100.0 / batch_size))
-    return res
-
-
-if __name__ == '__main__':
-    main()
+m, ind = torch.max(vgg16.predict(image), 1)
+print(m.data[0][0], '\n', ind.data[0][0])
+print(class_names[ind.data[0][0]])

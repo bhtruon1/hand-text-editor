@@ -22,7 +22,7 @@ transform = transforms.Compose(
     [transforms.ToTensor()
         , transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/training', transform=transform)
+trainset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/Train', transform=transform)
 
 
 # trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
@@ -31,17 +31,15 @@ trainset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_proje
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
 #                                           shuffle=True, num_workers=2)
 #
-testset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/testing', transform=transform)
+testset = dset.ImageFolder(root='/Users/chenmo/Files/PythonProjects/cs175_project/hand-text-editor/src/edgedata/Test', transform=transform)
 #
 # testloader = torch.utils.data.DataLoader(testset, batch_size=4,
 #                                          shuffle=False, num_workers=2)
 
-# classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-#            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-#            'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-#            'U', 'V', 'W', 'X', 'Y', 'Z')
-
-classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+           'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+           'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+           'U', 'V', 'W', 'X', 'Y', 'Z', 'SP', 'BS')
 
 
 
@@ -113,8 +111,8 @@ with torch.no_grad():
 print('Accuracy of the network on the bluh test images: %d %%' % (
     100 * correct / total))
 
-class_correct = list(0. for i in range(10))
-class_total = list(0. for i in range(10))
+class_correct = list(0. for i in range(38))
+class_total = list(0. for i in range(38))
 with torch.no_grad():
     for data in test_loader:
         images, labels = data
@@ -128,6 +126,6 @@ with torch.no_grad():
 
 print(class_total)
 
-for i in range(10):
+for i in range(38):
     print('Accuracy of %5s : %2d %%' % (
         classes[i], 100 * class_correct[i] / class_total[i]))
