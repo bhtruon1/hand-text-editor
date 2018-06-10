@@ -9,7 +9,7 @@ def gpu(model, dtype=torch.FloatTensor):
     return model, dtype
 
 def save_model(state, filename='model.pth.tar'):
-    torch.save(state.state_dict(), filename)
+    torch.save(state, filename)
 
 def load_model(filename='model.pth.tar'):    
     model = torch.load(filename)

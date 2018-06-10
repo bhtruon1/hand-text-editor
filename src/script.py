@@ -75,18 +75,17 @@ def accuracy(net, test_loader):
             _, predicted = torch.max(outputs, 1)
             total += labels_var.size(0)
             correct += (predicted == labels_var).sum().item()
-            c = (predicted == labels_var).squeeze()
-            for i in range(4):
-                label = labels_var[i]
-                class_correct[label] += c[i].item()
-                class_total[label] += 1
+    #        c = (predicted == labels_var).squeeze()
+    #        for i in range(4):
+    #            label = labels_var[i]
+    #            class_correct[label] += c[i].item()
+    #            class_total[label] += 1
 
-    print('Accuracy of the network on test images: %d %%' % (100 * correct / total))
-    print(class_total)
+    #print('Accuracy of the network on test images: %d %%' % (100 * correct / total))
+    #print(class_total)
 
-    for i in range(38):
-        print('Accuracy of %5s : %2d %%' % (
-            classes[i], 100 * class_correct[i] / class_total[i]))
+    #for i in range(38):
+    #    print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
 
 transform = transforms.Compose(
     [transforms.ToTensor() , transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])

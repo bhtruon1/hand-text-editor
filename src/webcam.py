@@ -13,6 +13,8 @@ allimages = True
 grey =  False
 edge = True
 counter = True
+max_count = 1501
+seconds = .1
 images = []
 
 def checkImgDir():
@@ -54,12 +56,12 @@ def show_webcam(mirror=False):
         cv2.imshow('my webcam', img)
 
         #captures image every 3 seconds
-        if (time.time() - start) % 60 >= 5 or allimages:
+        if (time.time() - start) % 60 >=  seconds:
             formatImage(img, width, maxwidth, count)  
             count += 1
             start = time.time()
 
-        if cv2.waitKey(1) != -1: 
+        if cv2.waitKey(1) != -1 or count == max_count: 
             break  # esc to quit
     cv2.destroyAllWindows()
     #print(images)
