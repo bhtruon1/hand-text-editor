@@ -14,7 +14,7 @@ import time
 import matplotlib.pyplot as plt
 from setGPU import *
 
-num_epochs = 10
+num_epochs = 1
 
 class Flatten(nn.Module):
     def forward(self, x):
@@ -94,11 +94,9 @@ def accuracy(net, test_loader):
             print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
-
-trainset = dset.ImageFolder(root='edgedata/training', transform=transform)
-
+trainset = dset.ImageFolder(root='data/training', transform=transform)
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle=True, num_workers=2)
-testset = dset.ImageFolder(root='edgedata/testing', transform=transform)
+testset = dset.ImageFolder(root='data/testing', transform=transform)
 # testloader = torch.utils.data.DataLoader(testset, batch_size=4, shuffle=False, num_workers=2)
 
 #classes = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y')

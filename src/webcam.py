@@ -11,7 +11,7 @@ import threading
 
 allimages = True
 grey =  False
-edge = True
+edge = False
 counter = True
 max_count = 1501
 seconds = .1

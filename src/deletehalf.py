@@ -19,9 +19,9 @@ import shutil
 #         except:
 #             pass
 
-dir = 'edgedata/training/'
+dir = 'data/training/'
 training_set = os.listdir(dir)
-for letter in training_set[1:]:
+for letter in training_set:
     if ".zip" not in letter:
         file_list = os.listdir(dir + str(letter))
         data_size = len(file_list)

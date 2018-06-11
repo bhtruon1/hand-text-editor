@@ -2,51 +2,49 @@
 Simply display the contents of the webcam with optional mirroring using OpenCV 
 via the new Pythonic cv2 interface.  Press any key to quit.
 """
+import PIL.Image
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from torch.autograd import Variable
 import time
 import cv2
 import os
 import numpy as np
-from PIL import Image
 #from text_editor import *
 from setGPU import *
-from torch.autograd import Variable
-classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y']
-classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y', 'Z', 'BS', 'SP')
+
+#classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y']
+classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y', 'Z', 'BS', 'SP']
 
 def checkImgDir():
     if not os.path.exists("images"):
         os.makedirs("images") 
 
 def run_nn(model):
-    text = ""
-    img = Image.open("images/image.jpeg")
+    img = PIL.Image.open("images/image.jpeg")
     ptLoader = transforms.Compose([transforms.ToTensor()]) 
-    img = ptLoader( img ).float()
+    img = ptLoader(img).float()
     img = Variable(img)
     img = img.unsqueeze(0)
     pred = model(img.cuda())
     values = pred.cpu().detach().numpy()
     pred = np.argmax(values[0])
     pred = classes[pred] 
-    if pred == "SP":
-       text += " "
-    if pred == "BS":
-       text += "BS"
-    else:
-       text += pred
+#    if pred == "SP":
+#       text.insert(" ")
+#    if pred == "BS":
+#       text.delete()
+#    else:
+#       text.insert(pred)
     print(pred)
-    print(text)
-    print("")
 
 def formatImage(img, width, maxwidth, model):
     cropwidth = int(width * 2)
     crop = img[0:width, cropwidth:maxwidth]
     crop = cv2.resize(crop, (32, 32))
-    crop = cv2.Canny(crop, 100, 200)
-    crop = cv2.cvtColor(crop, cv2.COLOR_GRAY2RGB)
+#    crop = cv2.Canny(crop, 100, 200)
+    #crop = cv2.cvtColor(crop, cv2.COLOR_GRAY2RGB)
     cv2.imwrite("images/image.jpeg", crop)
     run_nn(model)     
 
@@ -82,4 +80,5 @@ def main():
     model = load_model('model.pth.tar') 
     show_webcam(model, mirror=True)
 
+#text = TextEditor()
 main()
