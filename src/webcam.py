@@ -10,12 +10,13 @@ from PIL import Image
 import threading
 
 allimages = True
-grey =  False
+grey = False
 edge = False
 counter = True
-max_count = 1501
-seconds = .1
+max_count = 108
+seconds = .5
 images = []
+label = 0
 
 def checkImgDir():
     if not os.path.exists("images"):
@@ -24,15 +25,12 @@ def checkImgDir():
 def formatImage(img, width, maxwidth, count):
     cropwidth = int(width * 2)
     crop = img[0:width, cropwidth:maxwidth]
-    crop = cv2.resize(crop, (32, 32))
+    crop = cv2.resize(crop, (64, 64))
     if grey:
         crop = cv2.cvtColor( img, cv2.COLOR_RGB2GRAY )
     if edge: 
         crop = cv2.Canny(crop, 100, 200)
-    if counter:
-        cv2.imwrite("images/image{}.jpeg".format(count), crop)
-    if not counter:
-        cv2.imwrite("images/image.jpeg".format(count), crop)
+    cv2.imwrite("/Users/chenmo/Files/PythonProjects/local_cs175/new/{}_IMG_{:04}.jpeg".format(str(label), count), crop)
     images.append(img)
     return img     
 
@@ -55,7 +53,7 @@ def show_webcam(mirror=False):
 
         cv2.imshow('my webcam', img)
 
-        #captures image every 3 seconds
+        #captures image every 0.n seconds
         if (time.time() - start) % 60 >=  seconds:
             formatImage(img, width, maxwidth, count)  
             count += 1
@@ -67,7 +65,7 @@ def show_webcam(mirror=False):
     #print(images)
 
 def main():
-    checkImgDir()
+    #checkImgDir()
     show_webcam(mirror=True)
 
 
