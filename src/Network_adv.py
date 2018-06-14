@@ -34,20 +34,18 @@ class Net(nn.Module):
 
     def forward(self, x):
         # size 3 x 64 x 64
-        x = self.bn1(self.conv1(x))  # batch_size x num_channels x 64 x 64
-        x = F.relu(self.pool(x))  # batch_size x num_channels x 32 x 32
-        x = self.bn2(self.conv2(x))  # batch_size x num_channels*2 x 32 x 32
-        x = F.relu(self.pool(x))  # batch_size x num_channels*2 x 16 x 16
-        x = self.bn3(self.conv3(x))  # batch_size x num_channels*4 x 16 x 16
-        x = F.relu(self.pool(x))  # batch_size x num_channels*4 x 8 x 8
+        x = self.bn1(self.conv1(x))
+        x = F.relu(self.pool(x)) 
+        x = self.bn2(self.conv2(x)) 
+        x = F.relu(self.pool(x)) 
+        x = self.bn3(self.conv3(x))
+        x = F.relu(self.pool(x))
         x = self.bn4(self.conv4(x))
         x = F.relu(self.pool(x))
         # Flatten
-        x = x.view(-1, 4 * 4 * 32)  # batch_size x 8*8*num_channels*4
+        x = x.view(-1, 4 * 4 * 32)
 
-        #x = F.dropout(F.relu(self.fcbn1(self.fc1(x))),
-                      #p=self.dropout_rate, training=self.training)  # batch_size x self.num_channels*4
         x = self.fc1(x)
-        x = self.fc2(x)  # batch_size x 6
+        x = self.fc2(x)
 
         return F.log_softmax(x, dim=1)
