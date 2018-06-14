@@ -2,7 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torchvision.datasets as dset
-import Network
+import Network, Network_adv
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
@@ -13,6 +13,7 @@ from torch.autograd import Variable
 import time
 import matplotlib.pyplot as plt
 from setGPU import *
+import os
 
 num_epochs = 1
 
@@ -38,15 +39,20 @@ def train(net, criterion, optimizer):
         for i, data in enumerate(train_loader, 0):
             # get the inputs
             inputs, labels = data
-            inputs_var = Variable(inputs.type(dtype))   
-            labels_var = Variable(labels.type(dtype).long())   
+            #inputs_var = Variable(inputs.type(dtype))
+            #labels_var = Variable(labels.type(dtype).long())
 
             # zero the parameter gradients
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(inputs_var)
-            loss = criterion(outputs, labels_var)
+            # with cuda
+            # outputs = net(inputs_var)
+            # loss = criterion(outputs, labels_var)
+
+            # without cuda
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
@@ -102,14 +108,19 @@ testset = dset.ImageFolder(root='data/testing', transform=transform)
 #classes = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y')
 classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T','U', 'V', 'W', 'X', 'Y', 'Z', 'BS', 'SP')
 
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle=True, num_workers=2)
-test_loader = torch.utils.data.DataLoader(testset, batch_size=4, shuffle=False, num_workers=2)
-net = Network.Net()
-net, dtype = gpu(net)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)
+test_loader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=False, num_workers=2)
+net = Network_adv.Net()
+
+# commented out for cpu
+# net, dtype = gpu(net)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 train(net, criterion, optimizer)
 accuracy(net, test_loader)
-save_model(net)
+# save_model(net)
+
+last_json_path = os.path.join(model_dir, "metrics_val_last_weights.json")
+utils.save_dict_to_json(val_metrics, last_json_path)

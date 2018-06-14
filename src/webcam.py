@@ -19,8 +19,8 @@ images = []
 label = 0
 
 def checkImgDir():
-    if not os.path.exists("images"):
-        os.makedirs("images") 
+    if not os.path.exists("/Users/chenmo/Files/PythonProjects/local_cs175/new/" + str(label)):
+        os.makedirs("/Users/chenmo/Files/PythonProjects/local_cs175/new/" + str(label))
 
 def formatImage(img, width, maxwidth, count):
     cropwidth = int(width * 2)
@@ -30,7 +30,7 @@ def formatImage(img, width, maxwidth, count):
         crop = cv2.cvtColor( img, cv2.COLOR_RGB2GRAY )
     if edge: 
         crop = cv2.Canny(crop, 100, 200)
-    cv2.imwrite("/Users/chenmo/Files/PythonProjects/local_cs175/new/{}_IMG_{:04}.jpeg".format(str(label), count), crop)
+    cv2.imwrite("/Users/chenmo/Files/PythonProjects/local_cs175/new/{}/{}_IMG_{:04}.jpeg".format(str(label), str(label), count), crop)
     images.append(img)
     return img     
 
@@ -65,7 +65,7 @@ def show_webcam(mirror=False):
     #print(images)
 
 def main():
-    #checkImgDir()
+    checkImgDir()
     show_webcam(mirror=True)
 
 
